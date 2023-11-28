@@ -1,0 +1,15 @@
+{
+  "name": "semantic-release-example",
+  "version": "0.0.1",
+  "description": "Learning Semantic Release",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "gibby.steier@gmail.com",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "semantic-release": "^22.0.8"
+  }
+}
