@@ -1,0 +1,82 @@
+name: Check OTAble
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - app/**
+      - components/**
+      - yarn.lock
+      - app.json
+
+jobs:
+  fingerprint:
+    runs-on: ubuntu-latest
+    concurrency: fingerprint-${{ github.event_name != 'pull_request' && 'main' || github.run_id }}
+    permissions:
+      pull-requests: write
+      actions: write
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v3
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: yarn
+
+      - name: 📦 Install dependencies
+        run: yarn install
+
+      - name: Check fingerprint
+        id: fingerprint
+        uses: expo/expo-github-action/fingerprint@main
+
+      - uses: actions/github-script@v6
+        if: ${{ github.event_name == 'pull_request' && steps.fingerprint.outputs.fingerprint-diff == '[]' }}
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: ['OTA:no']
+              })
+            } catch (e) {
+              if (e.status != 404) {
+                throw e;
+              }
+            }
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['OTA:yes']
+            })
+
+      - uses: actions/github-script@v6
+        if: ${{ github.event_name == 'pull_request' && steps.fingerprint.outputs.fingerprint-diff != '[]' }}
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: ['OTA:yes']
+              })
+            } catch (e) {
+              if (e.status != 404) {
+                throw e;
+              }
+            }
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['OTA:no']
+            })
