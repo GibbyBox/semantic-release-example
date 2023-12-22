@@ -30,7 +30,7 @@ export default function MinesweeperScreen() {
     <View style={styles.root}>
 			{ isInitial ? (
 				<Button mode="contained" onPress={start}>
-					Start
+					LFG
 				</Button>
 			) : (
 				<Text>
